@@ -1,6 +1,4 @@
-biostatistics 
-
-source code repository for biostatistics project 
+source code repository for C-means and Panda Framework
 
 A) Including Four Implementations of C-means on Delta on FutureGrid
 
