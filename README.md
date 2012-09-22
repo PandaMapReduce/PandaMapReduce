@@ -18,3 +18,5 @@ Latest workable version 0.32
 
 
 Developing version 0.4
+
+  1) scale to multiple nodes
