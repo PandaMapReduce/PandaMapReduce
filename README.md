@@ -2,14 +2,12 @@ Source Code Repository for Panda Framework
 
 
 Latest workable version 0.32
-============================
-  1) run on multiple GPUs
-  2) run on GPUs and CPUs simultaneously
-  3) Region-based memory management
+  1) run on multiple gpus
+  2) run on gpus and cpus simultaneously
+  3) region-based memory management
   4) local combiner
-  5) iterative MapReduce support
-  6) Word Count, Matrix Multiplication, C-means
+  5) iterative mapreduce support
+  6) word count, matrix multiplication, cmeans
 
 
-Develping version 0.4
-=====================
+Developing version 0.4
