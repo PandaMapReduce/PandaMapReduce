@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 		printf("usage: %s [text file][num gpu][num cpu groups][num_mappers][cpu/gpu work ratio]\n", argv[0]);
 		exit(-1);	
 	}//if
-	ShowLog("%s %s",argv[0],argv[1]);
+	ShowLog("%s %s ...",argv[0],argv[1]);
 	char *fn = argv[1];
 	int num_gpus = atoi(argv[2]);
 	int num_cpus_groups = atoi(argv[3]);
