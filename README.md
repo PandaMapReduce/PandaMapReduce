@@ -2,6 +2,7 @@ Source Code Repository for Panda Framework
 
 
 Latest workable version 0.32
+
   1) run on multiple gpus
   2) run on gpus and cpus simultaneously
   3) region-based memory management
