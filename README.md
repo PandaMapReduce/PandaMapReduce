@@ -1,24 +1,15 @@
-source code repository for C-means and Panda Framework
-
-A) Including Four Implementations of C-means on Delta on FutureGrid
-
-1) OpenMP on CPUs
-
-2) MPI+OpenMP on CPUs 
-
-3) OpenMP on GPUs
-
-4) MPI+OpenMP on GPUs
+Source Code Repository for Panda Framework
 
 
-================================================
-B) There exist three tags:
+Latest workable version 0.32
+============================
+  1) run on multiple GPUs
+  2) run on GPUs and CPUs simultaneously
+  3) Region-based memory management
+  4) local combiner
+  5) iterative MapReduce support
+  6) Word Count, Matrix Multiplication, C-means
 
-1) v1.0 original source code from Pangborn
 
-2) v1.1 modified version that work with Delta
-
-3) v1.2 add OpenMP and MPI implementations of C-means on CPUs
-
-C) Experiment:
-Fold that contains all experiments scripts
+Develping version 0.4
+=====================
