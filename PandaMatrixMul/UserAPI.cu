@@ -1,31 +1,70 @@
-
 /*	
 	Copyright 2012 The Trustees of Indiana University.  All rights reserved.
 	CGL MapReduce Framework on GPUs and CPUs
 	
 	Code Name: Panda 
-	
-	File: map.cu 
+	File: reduce.cu 
 	First Version:		2012-07-01 V0.1
 	Current Version:	2012-09-01 V0.3	
 	Last Updates:		2012-09-02
 
 	Developer: Hui Li (lihui@indiana.edu)
-
 	This is the source code for Panda, a MapReduce runtime on GPUs and CPUs.
 
  */
 
-#ifndef __MAP_CU__
-#define __MAP_CU__
+#ifndef __USER_CU__
+#define __USER_CU__
 
 #include "Panda.h"
-#include "Global.h"
+#include "UserAPI.h"
+
+//-------------------------------------------------------------------------
+//Reduce Function in this application
+//-------------------------------------------------------------------------
+
+__device__ int gpu_compare(const void *d_a, int len_a, const void *d_b, int len_b)
+{
+	return 0;
+}
+
+__device__ void gpu_combiner(void *KEY, val_t* VAL, int keySize, int valCount, gpu_context *d_g_state, int map_task_idx)
+{
+	return;
+}
+
+__device__ void gpu_reduce(void *KEY, val_t* VAL, int keySize, int valCount, gpu_context d_g_state){
+
+		return;
+		
+}//reduce2
 
 __device__ float operator*(float4 a, float4 b)
 {
 	return (a.x*b.x+a.y*b.y+a.z*b.z+a.w*b.w);
 }//__device__
+
+
+int cpu_compare(const void *d_a, int len_a, const void *d_b, int len_b)
+{
+
+	return 0;
+}
+
+
+void cpu_combiner(void *KEY, val_t* VAL, int keySize, int valCount, cpu_context *d_g_state, int map_task_idx)
+{
+	return;
+}
+
+
+
+void cpu_reduce(void *KEY, val_t* VAL, int keySize, int valCount, cpu_context* d_g_state){
+
+		return;
+		
+}//reduce2
+
 
 
 void cpu_1d_blocked_matrix(float *A, float *B, float *C, int wA,int start_row_id,int end_id, int bz);
@@ -370,4 +409,4 @@ __device__ void gpu_map2(void *KEY, void*VAL, int keySize, int valSize, gpu_cont
 
 
 
-#endif //__MAP_CU__
+#endif //__USER_CU__

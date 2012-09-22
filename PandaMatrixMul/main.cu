@@ -18,7 +18,7 @@
 
 
 #include "Panda.h"
-#include "Global.h"
+#include "UserAPI.h"
 #include <ctype.h>
 
 //-----------------------------------------------------------------------
@@ -48,21 +48,21 @@ static float *RotateMatrix(float *matrix, int rowCount, int colCount)
 		
 int main(int argc, char** argv)
 {		
-	if (argc != 8)
+	if (argc != 5)
 	{	
-		printf("usage: %s [rowNum][colNum][num gpus][num cpu groups][num_mappers][cpu/gpu work ratio][auto tuning]\n", argv[0]);
+		printf("usage: %s [matrix size][num gpus][num cpu groups][cpu/gpu work ratio]\n", argv[0]);
 		exit(-1);	
 	}//if
 	
-	DoLog("configure input data for Panda job");
+	ShowLog("configure input data for Panda job");
 
 	int ROW_NUM = atoi(argv[1]);
-	int COL_NUM = atoi(argv[2]);
-	int num_gpus = atoi(argv[3]);
-	int num_cpus_groups = atoi(argv[4]);
-	int num_mappers = atoi(argv[5]);
-	float ratio = atof(argv[6]);
-	int auto_tune = atoi(argv[7]);
+	int COL_NUM = atoi(argv[1]);
+	int num_gpus = atoi(argv[2]);
+	int num_cpus_groups = atoi(argv[3]);
+	int num_mappers = 1;//atoi(argv[5]);
+	float ratio = atof(argv[4]);
+	int auto_tune = 0;//atoi(argv[7]);
 
 	double t1 = PandaTimer();
 
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 	float *matrix3 = GenMatrix(ROW_NUM,COL_NUM, 0.0);
 
 	double t2 = PandaTimer();
-	DoLog("load matrices  num_gpus:%d  num_cpus_groups:%d", num_gpus, num_cpus_groups);
+	ShowLog("load matrices  num_gpus:%d  num_cpus_groups:%d", num_gpus, num_cpus_groups);
 	double t3 = PandaTimer();
 
 	MM_KEY_T key;
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
 			break;
 
 		//panda job
-		job_configuration *cpu_job_conf = GetJobConf();
+		job_configuration *cpu_job_conf = CreateJobConf();
 		cpu_job_conf->num_cpus_groups = num_cpus_groups;
 		cpu_job_conf->num_cpus_cores = getCPUCoresNum();
 
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 		
 	for (int dev_id=0; dev_id<num_gpus; dev_id++){
 
-		job_configuration *gpu_job_conf = GetJobConf();
+		job_configuration *gpu_job_conf = CreateJobConf();
 		gpu_job_conf->num_gpus = num_gpus;
 		gpu_job_conf->num_mappers = num_mappers;
 		gpu_job_conf->auto_tuning = false;
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 	}
 	
 	double t4 = PandaTimer();
-	panda_context *panda = GetPandaContext();
+	panda_context *panda = CreatePandaContext();
 	
 	panda->num_gpus = num_gpus;
 	panda->num_cpus_groups = num_cpus_groups;
@@ -199,9 +199,9 @@ int main(int argc, char** argv)
 	cudaThreadSynchronize();
 	double t5 = PandaTimer();
 
-	DoLog("GenMatrix:%f",t2-t1);
-	DoLog("Copy to GPU:%f",t4-t3);
-	DoLog("Compute:%f",t5-t4);
+	ShowLog("GenMatrix:%f",t2-t1);
+	ShowLog("Copy to GPU:%f",t4-t3);
+	ShowLog("Compute:%f",t5-t4);
 	char str[128];
 	sprintf(str,"matrix size:%d copy2GPU:%f  compute:%f cpu/gpu ratio:%f auto-tune:%d", ROW_NUM, t3-t2, t5-t4, (double)ratio,auto_tune);
 	DoDiskLog(str);

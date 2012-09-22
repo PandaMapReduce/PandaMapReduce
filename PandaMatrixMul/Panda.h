@@ -16,12 +16,7 @@
 
  */
 
-/*
-#ifdef WIN32 
-#include <windows.h> 
-#endif 
-#include <pthread.h>
-*/
+
 
 #ifndef __PANDA_H__
 #define __PANDA_H__
@@ -40,6 +35,10 @@
 
 
 #define _DEBUG 0x01
+#define _WARN 0x02
+#define _ERROR 0x03
+
+
 #define CEIL(n,m) (n/m + (int)(n%m !=0))
 #define THREAD_CONF(grid, block, gridBound, blockBound) do {\
 	    block.x = blockBound;\
@@ -62,6 +61,15 @@
 #define STRIDE	32
 #define THREAD_BLOCK_SIZE 16
 
+#define SHARED_BUFF_LEN 204800
+#define CPU_SHARED_BUFF_SIZE 2048000
+
+#define _MAP		-1
+#define _COMBINE	-2
+#define _SHUFFLE	-3
+#define _REDUCE		-4
+
+
 extern "C"
 double PandaTimer();
 
@@ -71,23 +79,19 @@ extern "C"
 void __checkCudaErrors(cudaError err, const char *file, const int line );
 
 
-//used for unsorted values
-typedef struct
-{
-   void *key;
-   void *val;
-   int keySize;
-   int valSize;
-} keyval_t;
 
 typedef struct
 {
+
    int keySize;
    int valSize;
    int keyPos;
    int valPos;
-} keyval_pos_t;
 
+   int task_idx;
+   int next_idx;
+   
+} keyval_pos_t;
 
 typedef struct
 {
@@ -105,20 +109,34 @@ typedef struct
 } sorted_keyval_pos_t;
 
 
+//used for unsorted values
+typedef struct
+{
+   void *key;
+   void *val;
+   int keySize;
+   int valSize;
+   int task_idx;//map_task_idx, reduce_task_idx
+} keyval_t;
+
 //two direction - bounded share buffer
-//  from left to right  key val buffer
+// from left to right  key val buffer
 // from right to left  keyval_t buffer
 typedef struct
 {
-   void *buff;
-   int *total_arr_len;
+   
+   int *shared_arr_len;
+   int *shared_buddy;
+   int shared_buddy_len;
 
-   int buff_len;
-   int buff_pos;
+   char *shared_buff;
+   int *shared_buff_len;
+   int *shared_buff_pos;
 
    //int keyval_pos;
    int arr_len;
-   keyval_t *arr;
+   keyval_pos_t *arr;
+   keyval_t *cpu_arr;
 
 } keyval_arr_t;
 
@@ -140,6 +158,9 @@ typedef struct
 typedef struct 
 {		
 	bool auto_tuning;
+	bool local_combiner;
+	bool iterative_support;
+
 	int num_input_record;
 	keyval_t * input_keyval_arr;
 	int num_mappers;
@@ -153,13 +174,13 @@ typedef struct
 	int matrix_size;
 		
 }job_configuration;
-		
+							
 typedef struct {
-	
-	int tid;		//accelerator group id
-	int num_cpus_cores;   //num of processors
-	char device_type;
-	void *d_g_state;//gpu_context  cpu_context
+							
+	int tid;				//accelerator group id
+	int num_cpus_cores;		//num of processors
+	char device_type;		
+	void *d_g_state;		//gpu_context  cpu_context
 	void *cpu_job_conf;
 	
 	int start_row_idx;
@@ -170,7 +191,10 @@ typedef struct {
 
 typedef struct
 {		
-	bool configured;		
+
+	bool iterative_support;		
+	bool local_combiner;
+
 	int cpu_group_id;		
 	int num_input_record;	
 	int num_cpus_cores;			
@@ -179,6 +203,7 @@ typedef struct
 	keyval_arr_t *intermediate_keyval_arr_arr_p;
 	keyvals_t *sorted_intermediate_keyvals_arr;
 	int sorted_keyvals_arr_len;
+	int *intermediate_keyval_total_count;
 							
 	pthread_t  *panda_cpu_task;
 	panda_cpu_task_info_t *panda_cpu_task_info;
@@ -187,7 +212,9 @@ typedef struct
 						
 typedef struct 
 {	
-  bool configured;
+
+  bool iterative_support;
+  bool local_combiner;
 
   int gpu_id;   //assigned gpu device id used for resource allocation
   int num_gpus;
@@ -239,10 +266,9 @@ typedef struct
 
   keyval_t* d_reduced_keyval_arr;
 
-  int matrix_size;
+  int *keyval_pairs;
   //temporally
   
-
 } gpu_context;
 
 typedef struct {
@@ -261,10 +287,8 @@ typedef struct {
 
 } panda_context;
 
-
 typedef struct {
 
-	//char *file_name;
 	char *device_name;
 	int tid;			//accelerator group id
 	//int num_gpus;		//
@@ -273,17 +297,21 @@ typedef struct {
 	void *d_g_state;	//device context
 	void *job_conf;		//job configuration
 	
-	int start_row_idx;
-	int end_idx;
+	//int start_idx;
+	//int end_idx;
 
 } thread_info_t;
-
 
 #define GPU_ACC		0x01
 #define CPU_ACC		0x02
 #define CELL_ACC	0x03
+#define FPGA_ACC	0x04
 
 typedef int4 cmp_type_t;
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Panda  APIs in alphabet order
@@ -331,7 +359,16 @@ void CPUEmitMapOutput(void *key,
 					  int map_task_idx);
 
 extern "C"
-void CPUEmitReduceOuput (void*		key, 
+void CPUEmitCombinerOutput(void *key, 
+						  void *val, 
+						  int keySize, 
+						  int valSize, 
+						  cpu_context *d_g_state, 
+						  int map_task_idx);
+
+
+extern "C"
+void CPUEmitReduceOutput (void*		key, 
 						void*		val, 
 						int		keySize, 
 						int		valSize,
@@ -343,6 +380,12 @@ void DoDiskLog(const char *str);
 extern "C"
 void DestroyDGlobalState(gpu_context * d_g_state);
 
+__device__ void GPUEmitCombinerOutput(void*		key, 
+						void*		val, 
+						int		keySize, 
+						int		valSize,
+		           gpu_context *d_g_state, 
+				   int map_task_idx);
 
 __device__ void GPUEmitReduceOuput (void*		key, 
 						void*		val, 
@@ -351,13 +394,14 @@ __device__ void GPUEmitReduceOuput (void*		key,
 		           gpu_context *d_g_state);
 
 
-__device__ void GPUEmitMapOuput(void *key, 
+__device__ void GPUEmitMapOutput(void *key, 
 								  void *val, 
 								  int keySize, 
 								  int valSize, 
 								  gpu_context *d_g_state,
-								  int map_task_idx
-								  );
+								  int map_task_idx);
+
+//__device__ int gpu_compare(const void *d_a, int len_a, const void *d_b, int len_b);
 
 
 extern "C"
@@ -426,6 +470,10 @@ void Shuffle4GPUOutput(gpu_context *d_g_state);
 extern "C"
 void *RunPandaCPUMapThread(void *ptr);
 
+extern "C"
+void *RunPandaCPUCombinerThread(void *ptr);
+
+
 __global__ 
 void RunGPUMapTasks(gpu_context d_g_state, 
 					int curIter, 
@@ -438,19 +486,19 @@ extern "C"
 int getGPUCoresNum();
 
 extern "C"
-panda_context *GetPandaContext();
+panda_context *CreatePandaContext();
 
 extern "C"
 gpu_context *GetDGlobalState();
 
 extern "C"   
-cpu_context *GetCPUContext();
+cpu_context *CreateCPUContext();
 
 extern "C"
-gpu_context *GetGPUContext();
+gpu_context *CreateGPUContext();
 
 extern "C"
-job_configuration *GetJobConf();
+job_configuration *CreateJobConf();
 
 
 
@@ -503,12 +551,22 @@ __global__ void printData3(float *C);
 
 
 #ifdef _DEBUG
-#define DoLog(...) do{printf("[PandaLog][%s]\t\t",__FUNCTION__);printf(__VA_ARGS__);printf("\n");}while(0)
+#define ShowLog(...) do{printf("[#Log#][%s]\t\t",__FUNCTION__);printf(__VA_ARGS__);printf("\n");}while(0)
 #else
-#define DoLog(...) //do{printf(__VA_ARGS__);printf("\n");}while(0)
+#define ShowLog(...) //do{printf(__VA_ARGS__);printf("\n");}while(0)
 #endif
 
-#define DoError(...) do{printf("[#Error#][%s]\t\t",__FUNCTION__);printf(__VA_ARGS__);printf("\n");}while(0)
+#ifdef _ERROR
+#define ShowError(...) do{printf("[#Error#][%s]\t\t",__FUNCTION__);printf(__VA_ARGS__);printf("\n");}while(0)
+#else
+#define ShowError(...)
+#endif
+
+#ifdef _WARN
+#define ShowWarn(...) do{printf("[#WARN#][%s]\t\t",__FUNCTION__);printf(__VA_ARGS__);printf("\n");}while(0)
+#else
+#define ShowWarn(...) 
+#endif
 
 typedef void (*PrintFunc_t)(void* key, void* val, int keySize, int valSize);
 void PrintOutputRecords(Spec_t* spec, int num, PrintFunc_t printFunc);
