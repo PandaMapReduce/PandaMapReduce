@@ -46,6 +46,8 @@ void PandaMetaScheduler(thread_info_t *thread_info, panda_context *panda){
 	
 	int assigned_gpu_id = 0;
 	int assigned_cpu_group_id = 0;
+	static int configured = 0;
+
 	for (int dev_id=0; dev_id<(num_gpus + num_cpus_groups); dev_id++){
 
 		if (thread_info[dev_id].device_type == GPU_ACC){
@@ -58,7 +60,14 @@ void PandaMetaScheduler(thread_info_t *thread_info, panda_context *panda){
 			d_g_state->num_gpus = num_gpus;
 			d_g_state->gpu_id = assigned_gpu_id;
 			d_g_state->local_combiner = gpu_job_conf->local_combiner;
-			d_g_state->iterative_support = gpu_job_conf->iterative_support;
+
+			if (configured == 0)
+				d_g_state->iterative_support = false;
+			else{
+				d_g_state->iterative_support = true;
+			}
+				configured++;
+			//d_g_state->iterative_support = gpu_job_conf->iterative_support;
 
 			thread_info[dev_id].tid = dev_id;
 			thread_info[dev_id].d_g_state = d_g_state;
@@ -231,6 +240,7 @@ void PandaMetaScheduler(thread_info_t *thread_info, panda_context *panda){
 	DoLog2Disk("Panda Map			take:%f sec",t3-t2);
 	DoLog2Disk("Panda MergeShuffle	take:%f sec",t4-t3);
 	DoLog2Disk("Panda Reduce		take:%f sec",t5-t4);
+	
 
 	ShowLog("Panda Map			take:%f sec",t3-t2);
 	ShowLog("Panda MergeShuffle	take:%f sec",t4-t3);

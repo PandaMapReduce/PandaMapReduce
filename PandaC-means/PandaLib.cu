@@ -101,9 +101,7 @@ void InitCPUMapReduce2(thread_info_t * thread_info){
 	if (job_conf->input_keyval_arr == NULL) { ShowError("Error: input_keyval_arr == NULL"); exit(-1);}
 	if (d_g_state->num_cpus_cores <= 0) {	ShowError("Error: d_g_state->num_cpus == 0"); exit(-1);}
 
-	//ShowLog("d_g_state->configured:%s  enable for iterative applications",d_g_state->configured? "true" : "false");
-	//if (d_g_state->configured)
-	//	return;
+	
 	
 	int totalKeySize = 0;
 	int totalValSize = 0;
@@ -207,9 +205,11 @@ void InitGPUMapReduce4(thread_info_t* thread_info)
 void InitGPUMapReduce3(gpu_context* d_g_state)
 {	
 
-	ShowLog("d_g_state->configured:%s  enable for iterative applications",d_g_state->iterative_support? "true" : "false");
-	//if (d_g_state->configured)
-	//	return;
+	//ShowLog("d_g_state->iterative_support:%s  enable for iterative applications",d_g_state->iterative_support? "true" : "false");
+	//if (d_g_state->iterative_support){
+	//ShowLog("d_g_state->configured:%s  skip configuration...",d_g_state->iterative_support? "true" : "false");
+	//return;
+	//}
 	
 	int totalKeySize = 0;
 	int totalValSize = 0;
@@ -218,9 +218,9 @@ void InitGPUMapReduce3(gpu_context* d_g_state)
 		totalValSize += d_g_state->h_input_keyval_arr[i].valSize;
 	}//for
 	ShowLog("GPU_ID:[%d] copy %d input records from Host to GPU memory totalKeySize:%d KB totalValSize:%d KB",d_g_state->gpu_id, d_g_state->num_input_record, totalKeySize/1024, totalValSize/1024);
-	
+	double t1 = PandaTimer();	
+
 	void *input_vals_shared_buff = malloc(totalValSize);
-	
 	void *input_keys_shared_buff = malloc(totalKeySize);
 	keyval_pos_t *input_keyval_pos_arr = (keyval_pos_t *)malloc(sizeof(keyval_pos_t)*d_g_state->num_input_record);
 	
@@ -244,6 +244,7 @@ void InitGPUMapReduce3(gpu_context* d_g_state)
 
 		keyPos += keySize;	
 		valPos += valSize;
+
 	}//for
 
 	checkCudaErrors(cudaMalloc((void **)&d_g_state->d_input_keyval_pos_arr,sizeof(keyval_pos_t)*d_g_state->num_input_record));
@@ -256,7 +257,10 @@ void InitGPUMapReduce3(gpu_context* d_g_state)
 
 	//checkCudaErrors(cudaMemcpy(d_g_state->d_input_keyval_arr,h_buff,sizeof(keyval_t)*d_g_state->num_input_record,cudaMemcpyHostToDevice));
 	cudaThreadSynchronize(); 
-	d_g_state->iterative_support = true;
+	double t2 = PandaTimer();
+
+	ShowLog("GPU_ID:[%d] copy keyvalue pairs done. Take:%f sec",d_g_state->gpu_id, t2-t1);
+	//d_g_state->iterative_support = true;
 
 }//void
 
@@ -324,9 +328,8 @@ void InitCPUDevice(thread_info_t*thread_info){
 	//------------------------------------------
 	cpu_context *d_g_state = (cpu_context *)(thread_info->d_g_state);
 	if (d_g_state->num_cpus_cores<=0) d_g_state->num_cpus_cores = getCPUCoresNum();
-
-	int tid = thread_info->tid;
-	ShowLog( "CPU_GROUP_ID:[%d] Init CPU Deivce",d_g_state->cpu_group_id);
+	//int tid = thread_info->tid;
+	ShowLog( "CPU_GROUP_ID:[%d] Init CPU Deivce Num cpus cores:%d",d_g_state->cpu_group_id, d_g_state->num_cpus_cores);
 	
 }
 
@@ -831,7 +834,7 @@ __global__ void GPUMapPartitioner(gpu_context d_g_state)
 	if (thread_start_idx >= thread_end_idx)
 		return;
 
-	if(TID==0) 	ShowWarn("hi 0");
+	//if(TID==0) 	ShowWarn("hi 0");
 	int buddy_arr_len = num_records_per_thread;
 	int * int_arr = (int*)malloc((4+buddy_arr_len)*sizeof(int));
 	if(int_arr==NULL){ ShowError("there is not enough GPU memory\n"); return;}
@@ -841,7 +844,7 @@ __global__ void GPUMapPartitioner(gpu_context d_g_state)
 	int *shared_buff_pos = int_arr+2;
 	int *num_buddy = int_arr+3;
 	int *buddy = int_arr+4;
-	if(TID==0) ShowWarn("hi 1");
+	//if(TID==0) ShowWarn("hi 1");
 	(*shared_buff_len) = SHARED_BUFF_LEN;
 	(*shared_arr_len) = 0;
 	(*shared_buff_pos) = 0;
@@ -855,7 +858,7 @@ __global__ void GPUMapPartitioner(gpu_context d_g_state)
 			index ++;
 	}//for
 	index = 0;
-	if(TID==0) ShowWarn("hi 2");
+	//if(TID==0) ShowWarn("hi 2");
 	for(int map_task_idx = thread_start_idx; map_task_idx < thread_end_idx; map_task_idx += STRIDE){
 
 		keyval_arr_t *kv_arr_t = (keyval_arr_t *)&(kv_arr_t_arr[index]);
@@ -872,7 +875,7 @@ __global__ void GPUMapPartitioner(gpu_context d_g_state)
 		d_g_state.d_intermediate_keyval_arr_arr_p[map_task_idx] = kv_arr_t;
 
 	}//for
-	if(TID==0) ShowWarn("hi 3");
+	//if(TID==0) ShowWarn("hi 3");
 }//GPUMapPartitioner
 
 __global__ void RunGPUMapTasks(gpu_context d_g_state, int curIter, int totalIter)
@@ -1636,7 +1639,10 @@ void* Panda_Map(void *ptr){
 		DoLog2Disk("   GPU Map take %f sec",t2-t1);
 		DoLog2Disk("   GPU Combiner take %f sec",t3-t2);
 		DoLog2Disk("   GPU Shuffle take %f sec",t4-t3);
+
+
 		
+
 	}//if
 		
 	if(thread_info->device_type == CPU_ACC){
@@ -1663,7 +1669,8 @@ void* Panda_Map(void *ptr){
 		DoLog2Disk("   CPU Shuffle take %f sec",t4-t3);
 			
 	}	
-			
+
+	
 	return NULL;
 }//FinishMapReduce2(d_g_state);
 

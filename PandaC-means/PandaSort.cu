@@ -765,13 +765,13 @@ void PandaShuffleMergeGPU(panda_context *d_g_state_panda, gpu_context *d_g_state
 				kvals_p->vals[k].valSize = valSize_0;
 				kvals_p->vals[k].val = (char *)malloc(sizeof(char)*valSize_0);
 				memcpy(kvals_p->vals[k].val,val_0, valSize_0);
+
 			}//for
-		}//if (j == sorted_key_arr_len){
+		}//if
 	}//if
 
 	d_g_state_panda->sorted_intermediate_keyvals_arr = sorted_intermediate_keyvals_arr;
-
-	ShowLog("GPU_ID:[%d] Panda Context %d keyvalue pairs from GPU context",d_g_state_gpu->gpu_id,d_g_state_panda->sorted_keyvals_arr_len);
+	ShowLog("GPU_ID:[%d] panda_context current length of shuffled keyval pairs:%d",d_g_state_gpu->gpu_id, d_g_state_panda->sorted_keyvals_arr_len);
 
 }
 
