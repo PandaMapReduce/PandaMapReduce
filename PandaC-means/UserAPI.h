@@ -33,6 +33,9 @@ int cpu_compare(const void *d_a, int len_a, const void *d_b, int len_b);
 
 void cpu_combiner(void *KEY, val_t* VAL, int keySize, int valCount, cpu_context *d_g_state, int map_task_idx);
 
+void cmeans_cpu_map_cpp(void *key, void *val, int keySize, int valSize);
+void cmeans_cpu_reduce_cpp(void *key, val_t* vals, int keySize, int valCount);
+
 
 typedef struct
 {
@@ -51,7 +54,7 @@ typedef struct
 {
         int* ptrPoints;
         int* ptrClusters;
-        int* ptrChange;
+        //int* ptrChange;
 
         float *d_tempClusters;
         float *d_tempDenominators;
