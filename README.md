@@ -13,10 +13,14 @@ Latest workable version 0.32
 
   5) iterative mapreduce support
 
-  6) word count, matrix multiplication, cmeans
+Applications:
+  1) word count
+  2) matrix multiplication
+  3) cmeans
 
 
 
 Developing version 0.4
 
-  1) scale to multiple nodes
+  1) gpu_host_map() function
+  2) multiple gpu context management
