@@ -305,16 +305,17 @@ void StartCPUShuffle2(thread_info_t *thread_info){
 	int merged_key_arr_len = 0;
 
 	int num_threads = d_g_state->num_cpus_cores;
-	int num_records_per_thread = (cpu_job_conf->num_input_record + num_threads-1)/(num_threads);
+	int num_records_per_thread = (cpu_job_conf->num_input_record)/(num_threads);
 	
 	int start_idx = 0;
 	int end_idx = 0;
 
-
+	
 	int total_count = 0;
 	for (int i=0; i< cpu_job_conf->num_input_record; i++){
 		total_count += d_g_state->intermediate_keyval_total_count[i];
 	}//for
+
 
 	int keyvals_arr_len = 100;
 	d_g_state->sorted_intermediate_keyvals_arr = (keyvals_t *)malloc(sizeof(keyvals_t)*keyvals_arr_len);
@@ -425,7 +426,6 @@ void StartCPUShuffle2(thread_info_t *thread_info){
 		start_idx = end_idx;
 		d_g_state->sorted_intermediate_keyvals_arr = sorted_intermediate_keyvals_arr;
 	}
-		
 	d_g_state->sorted_keyvals_arr_len = sorted_key_arr_len;
 
 /*	ShowLog("CPU_GROUP_ID:[%d] Start Idx:%d  Done :%d tasks",
@@ -594,14 +594,89 @@ void Shuffle4GPUOutput(gpu_context* d_g_state){
 }
 
 
-//host function sort_CPU
-//copy intermediate records from device memory to host memory and sort the intermediate records there. 
-//The host API cannot copy from dynamically allocated addresses on device runtime heap, only device code can access them
+void PandaShuffleMergeGPUCard(panda_context* d_g_state_0, gpu_card_context* d_g_state_1){
 
-void sort_CPU(gpu_context* d_g_state){
+	ShowLog("PandaShuffleMergeGPUCard GPU_CARD_GROUP_ID:[%d]", d_g_state_1->gpu_group_id);
+	keyvals_t * panda_sorted_intermediate_keyvals_arr = d_g_state_0->sorted_intermediate_keyvals_arr;
+	keyvals_t * gpu_sorted_intermediate_keyvals_arr = d_g_state_1->sorted_intermediate_keyvals_arr;
 
+	void *key_0, *key_1;
+	int keySize_0, keySize_1;
+	bool equal;	
 
-}
+	for (int i=0; i<d_g_state_1->sorted_keyvals_arr_len; i++){
+		key_1 = gpu_sorted_intermediate_keyvals_arr[i].key;
+		keySize_1 = gpu_sorted_intermediate_keyvals_arr[i].keySize;
+
+		int j;
+		for (j=0; j<d_g_state_0->sorted_keyvals_arr_len; j++){
+			key_0 = panda_sorted_intermediate_keyvals_arr[j].key;
+			keySize_0 = panda_sorted_intermediate_keyvals_arr[j].keySize;
+			
+			if(gpu_card_compare(key_0,keySize_0,key_1,keySize_1)!=0)
+				continue;
+
+			//copy values from cpu_contex to panda context
+			int val_arr_len_1 = gpu_sorted_intermediate_keyvals_arr[i].val_arr_len;
+			int index = panda_sorted_intermediate_keyvals_arr[j].val_arr_len;
+			if (panda_sorted_intermediate_keyvals_arr[j].val_arr_len ==0)
+				panda_sorted_intermediate_keyvals_arr[j].vals = NULL;
+			panda_sorted_intermediate_keyvals_arr[j].val_arr_len += val_arr_len_1;
+
+			val_t *vals = panda_sorted_intermediate_keyvals_arr[j].vals;
+			panda_sorted_intermediate_keyvals_arr[j].vals = (val_t*)realloc(vals, sizeof(val_t)*(panda_sorted_intermediate_keyvals_arr[j].val_arr_len));
+
+			for (int k=0;k<val_arr_len_1;k++){
+				char *val_0 = (char *)(gpu_sorted_intermediate_keyvals_arr[i].vals[k].val);
+				int valSize_0 = gpu_sorted_intermediate_keyvals_arr[i].vals[k].valSize;
+
+				panda_sorted_intermediate_keyvals_arr[j].vals[index+k].val = malloc(sizeof(char)*valSize_0);
+				panda_sorted_intermediate_keyvals_arr[j].vals[index+k].valSize = valSize_0;
+				memcpy(panda_sorted_intermediate_keyvals_arr[j].vals[index+k].val, val_0, valSize_0);
+
+			}//for
+			break;
+		}//for
+
+		if (j == d_g_state_0->sorted_keyvals_arr_len){
+
+			if (d_g_state_0->sorted_keyvals_arr_len == 0) panda_sorted_intermediate_keyvals_arr = NULL;
+
+			val_t *vals = gpu_sorted_intermediate_keyvals_arr[i].vals;
+			int val_arr_len = gpu_sorted_intermediate_keyvals_arr[i].val_arr_len;
+
+			d_g_state_0->sorted_keyvals_arr_len++;
+			
+			panda_sorted_intermediate_keyvals_arr = (keyvals_t *)realloc(panda_sorted_intermediate_keyvals_arr, 
+				sizeof(keyvals_t)*(d_g_state_0->sorted_keyvals_arr_len));
+
+			int index = d_g_state_0->sorted_keyvals_arr_len-1;
+			keyvals_t* kvals_p = (keyvals_t *)&(panda_sorted_intermediate_keyvals_arr[index]);
+
+			kvals_p->keySize = keySize_1;
+			kvals_p->key = malloc(sizeof(char)*keySize_1);
+			memcpy(kvals_p->key, key_1, keySize_1);
+
+			kvals_p->vals = (val_t *)malloc(sizeof(val_t)*val_arr_len);
+			kvals_p->val_arr_len = val_arr_len;
+
+			for (int k=0; k < val_arr_len; k++){
+				char *val_0 = (char *)(gpu_sorted_intermediate_keyvals_arr[i].vals[k].val);
+				int valSize_0 = gpu_sorted_intermediate_keyvals_arr[i].vals[k].valSize;
+
+				kvals_p->vals[k].valSize = valSize_0;
+				kvals_p->vals[k].val = (char *)malloc(sizeof(char)*valSize_0);
+
+				memcpy(kvals_p->vals[k].val,val_0, valSize_0);
+
+			}//for
+		}//if (j == sorted_key_arr_len){
+	}//if
+
+	d_g_state_0->sorted_intermediate_keyvals_arr = gpu_sorted_intermediate_keyvals_arr;
+	ShowLog("GPU_CARD_GROUP_ID:[%d] DONE. Sorted len:%d",d_g_state_1->gpu_group_id, d_g_state_0->sorted_keyvals_arr_len);
+
+}//void
 
 
 void PandaShuffleMergeCPU(panda_context *d_g_state_0, cpu_context *d_g_state_1){
