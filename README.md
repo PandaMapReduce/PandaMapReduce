@@ -3,10 +3,15 @@ Source Code Repository for Panda Framework on GPUs/CPUs
 ==============================
 
 6/2012 - 12/2012
+
 Hui Li
+
 Department of Computer Science
+
 Indiana University
+
 Bloomington, Indiana
+
 ==============================
 
 === About ===
@@ -18,8 +23,11 @@ for either task-latency or throughput purposes. Challenges occur in regard to pr
 === Software Installation ===
 
 1) Install NVIDIA CUDA Driver (available from http://www.nvidia.com/object/cuda_get.html)
+
 2) Install NVIDIA CUDA Toolkit (available from http://www.nvidia.com/object/cuda_get.html)
+
 3) Install NVIDIA CUDA SDK (available from http://www.nvidia.com/object/cuda_get.html)
+
 4) Checkout source code from Github repository into your Linux machine
 
 
@@ -62,9 +70,7 @@ Developing version 0.4
 
 ============== License ===============
 
-Copyright (c) 2012, Indiana University
-
-All rights reserved.
+Copyright (c) 2012, Indiana University  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. 2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
