@@ -13,26 +13,32 @@ Indiana University
 Bloomington, Indiana
 
 
-=== About ===================
+=========== About ============
 
 Heterogeneous parallel system with multi processors and accelerators are becoming ubiquitous due to better costperformance
 and energy-efficiency. These heterogeneous processor architectures have different instruction sets and are optimized
 for either task-latency or throughput purposes. Challenges occur in regard to programmability and performance when coprocessing SPMD computations on heterogeneous architectures simultaneously. In order to meet these challenges, we designed and implemented a runtime system with MapReduce interface that used for co-processing SPMD job on GPUs and CPUs simultaneously. We are proposing a hybrid MapReduce programming interface for the developer and leverage the two-level scheduling approach in order to efficiently schedule tasks with heterogeneous granularity on the GPUs and CPUs. Experimental results of Cmeans clustering, matrix multiplication and word count indicate that using all CPU cores increase the GPU performance by 11.5%, 5.1%, and 41.9% respectively. 
 
-=== Software Installation ===
+== Installation&Deployment ==
 
-1) Install NVIDIA CUDA Driver (available from http://www.nvidia.com/object/cuda_get.html)                                 2) Install NVIDIA CUDA Toolkit (available from http://www.nvidia.com/object/cuda_get.html)                                3) Install NVIDIA CUDA SDK (available from http://www.nvidia.com/object/cuda_get.html)                                    4) Checkout source code from Github repository into your Linux machine
+1) Install NVIDIA CUDA Driver (available from http://www.nvidia.com/object/cuda_get.html)                                 
 
-5) Compiling the Panda Code (Linux)
+   Install NVIDIA CUDA Toolkit (available from http://www.nvidia.com/object/cuda_get.html)                                
+
+   Install NVIDIA CUDA SDK (available from http://www.nvidia.com/object/cuda_get.html)                                    
+
+   Checkout source code from Github repository into your Linux machine
+
+2) Compiling the Panda Code (Linux)
 
     $ cd ~/Panda_WordCount
     $ make
 
-6) Compiling the CUDA Code (Windows) 
+3) Compiling the CUDA Code (Windows) 
 
 We will provide the Windows vesions soon. Windows users should be able to use the included ".sln" Visual Studio solution file. Ensure that the $(CUDA_INC_PATH) and $(CUDA_LIB_PATH) environment variables are set properly. It was developed and tested on Windows 7 with Visual Studio 2008 Professional.
 
-7) Running the Code
+4) Running the Code
 
     ./panda_cmeans
 
