@@ -5,11 +5,8 @@ Source Code Repository for Panda Framework on GPUs/CPUs
 6/2012 - 12/2012
 
 Hui Li
-
 Department of Computer Science
-
 Indiana University
-
 Bloomington, Indiana
 
 ==============================
