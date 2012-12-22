@@ -4,14 +4,10 @@ Source Code Repository for Panda Framework on GPUs/CPUs
 
 6/2012 - 12/2012
 
-Hui Li
-Department of Computer Science
-Indiana University
-Bloomington, Indiana
+Hui Li                                                                                                                     Department of Computer Science                                                                                      Indiana University                                                                                              Bloomington, Indiana
 
-==============================
 
-=== About ===
+=== About ===================
 
 Heterogeneous parallel system with multi processors and accelerators are becoming ubiquitous due to better costperformance
 and energy-efficiency. These heterogeneous processor architectures have different instruction sets and are optimized
@@ -19,14 +15,7 @@ for either task-latency or throughput purposes. Challenges occur in regard to pr
 
 === Software Installation ===
 
-1) Install NVIDIA CUDA Driver (available from http://www.nvidia.com/object/cuda_get.html)
-
-2) Install NVIDIA CUDA Toolkit (available from http://www.nvidia.com/object/cuda_get.html)
-
-3) Install NVIDIA CUDA SDK (available from http://www.nvidia.com/object/cuda_get.html)
-
-4) Checkout source code from Github repository into your Linux machine
-
+1) Install NVIDIA CUDA Driver (available from http://www.nvidia.com/object/cuda_get.html)                                 2) Install NVIDIA CUDA Toolkit (available from http://www.nvidia.com/object/cuda_get.html)                                3) Install NVIDIA CUDA SDK (available from http://www.nvidia.com/object/cuda_get.html)                                    4) Checkout source code from Github repository into your Linux machine
 
 === Compiling the Panda Code (Linux) ===
 
