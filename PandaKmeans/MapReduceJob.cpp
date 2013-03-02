@@ -1,22 +1,10 @@
 #include <panda/Message.h>
 #include <panda/Chunk.h>
 #include <panda/Combiner.h>
-#include <panda/PandaGPUConfig.h>
 #include <panda/Mapper.h>
 #include <panda/MapReduceJob.h>
 #include <panda/Partitioner.h>
-#include <panda/PartialReducer.h>
 #include <panda/Reducer.h>
-#include <panda/SerializedItemCollection.h>
-#include <panda/Sorter.h>
-
-#include <cudacpp/Event.h>
-#include <cudacpp/Runtime.h>
-#include <cudacpp/Stream.h>
-
-#include <oscpp/Condition.h>
-#include <oscpp/Runnable.h>
-#include <oscpp/Thread.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -92,14 +80,6 @@ namespace panda
           MPI_Abort(MPI_COMM_WORLD, 1);
         }
       }
-#if 0 // print out the configuration
-      for (std::map<std::string, std::vector<int> >::iterator it = hosts.begin(); it != hosts.end(); ++it)
-      {
-        printf("%s - %d\n", it->first.c_str(), devCounts[it->first]);
-        for (unsigned int i = 0; i < it->second.size(); ++i) printf("  %d\n", it->second[i]);
-      }
-      fflush(stdout);
-#endif
 
       // send out the device number for each process to use.
       MPI_Irecv(&deviceNum, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &req);
@@ -122,10 +102,6 @@ namespace panda
       MPI_Recv(&deviceNum, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &stat);
     }
 
-#if 0 // print out stuff
-    MPI_Barrier(MPI_COMM_WORLD);
-    printf("%d %s - using device %d (getDevice returns %d).\n", commRank, host.c_str(), deviceNum, cudacpp::Runtime::getDevice()); fflush(stdout);
-#endif
     cudacpp::Runtime::setDevice(deviceNum);
     MPI_Barrier(MPI_COMM_WORLD);
   }
