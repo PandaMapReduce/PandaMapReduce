@@ -2,7 +2,7 @@ Source Code Repository for Panda Framework on GPUs/CPUs
 
 ==============================
 
-6/2012 - 12/2012
+6/2012 - 3/2013
 
 Hui Li              
 
