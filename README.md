@@ -1,4 +1,4 @@
-Source Code Repository for Panda Framework on GPUs/CPUs
+Source Code Repository for Panda Framework on GPUs/CPUs on Distributed Memory Syste
 
 ==============================
 
@@ -17,7 +17,7 @@ Bloomington, Indiana
 
 Heterogeneous parallel system with multi processors and accelerators are becoming ubiquitous due to better costperformance
 and energy-efficiency. These heterogeneous processor architectures have different instruction sets and are optimized
-for either task-latency or throughput purposes. Challenges occur in regard to programmability and performance when coprocessing SPMD computations on heterogeneous architectures simultaneously. In order to meet these challenges, we designed and implemented a runtime system with MapReduce interface that used for co-processing SPMD job on GPUs and CPUs simultaneously. We are proposing a hybrid MapReduce programming interface for the developer and leverage the two-level scheduling approach in order to efficiently schedule tasks with heterogeneous granularity on the GPUs and CPUs. Experimental results of Cmeans clustering, matrix multiplication and word count indicate that using all CPU cores increase the GPU performance by 11.5%, 5.1%, and 41.9% respectively. 
+for either task-latency or throughput purposes. Challenges occur in regard to programmability and performance when coprocessing SPMD computations on heterogeneous architectures and cluster. In order to meet these challenges, we designed and implemented a runtime system with MapReduce interface that used for co-processing SPMD job on GPUs and CPUs simultaneously. We are proposing a hybrid MapReduce programming interface for the developer and leverage the two-level scheduling approach in order to efficiently schedule tasks with heterogeneous granularity on the GPUs and CPUs. Experimental results of Cmeans clustering, matrix multiplication and word count indicate that using all CPU cores increase the GPU performance by 11.5%, 5.1%, and 41.9% respectively. 
 
 == Installation&Deployment ==
 
