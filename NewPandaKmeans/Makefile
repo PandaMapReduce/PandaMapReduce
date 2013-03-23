@@ -1,8 +1,7 @@
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-#    NewPanda 						3/12/2013
-#    							lihui@indiana.edu
+#    NewPandaKmeans 						  3/12/2013
+#    							  lihui@indiana.edu
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 
 
 
@@ -17,7 +16,6 @@ NVCCFLAGS   = $(CFLAGS) --ptxas-options=-v
 LDFLAGS     = $(OPTFLAGS) -L/N/soft/intel/impi/4.0.0.028/lib64/
 #LIBS        = -lmpi -lcudart -fopenmp -lcutil_x86_64
 LIBS        = -lmpi -fopenmp 
-
 
 #  note:
 #  gcc usess -fopenmp
