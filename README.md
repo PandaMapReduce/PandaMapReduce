@@ -1,3 +1,7 @@
+The latest version has been moved to https://github.com/futuregrid/panda
+
+==============================
+
 Source Code Repository for Panda Framework on GPUs/CPUs on Distributed Memory Syste
 
 ==============================
